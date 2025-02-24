@@ -9,8 +9,11 @@
 			import { GCodeLoader } from 'three/addons/loaders/GCodeLoader.js';
 			import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 			import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+			import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+			import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+			import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-			let camera, scene, renderer;
+			let camera, scene, renderer, composer;
 
 			init();
 			render();
@@ -21,6 +24,7 @@
 				camera.position.set( 0, 0, 70 );
 
 				scene = new THREE.Scene();
+				scene.background = new THREE.Color(0x000000); // Add dark background
 
 				const loader = new GCodeLoader();
 				loader.load( 'assets/models/island.gcode', function ( object ) {
@@ -92,17 +96,36 @@
 					render();
 				});
 
+        
+
 				renderer = new THREE.WebGLRenderer( { antialias: true } );
 				renderer.setPixelRatio( window.devicePixelRatio );
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.getElementById('landing-hero').appendChild( renderer.domElement );
 
-				const controls = new OrbitControls( camera, renderer.domElement );
-				controls.addEventListener( 'change', render ); // use if there is no animation loop
+				// Add bloom effect
+				const renderScene = new RenderPass(scene, camera);
+				composer = new EffectComposer(renderer);
+				composer.addPass(renderScene);
+
+				const bloomPass = new UnrealBloomPass(
+					new THREE.Vector2(window.innerWidth, window.innerHeight),
+					1.0,    // reduced strength (from 3.0)
+					0.5,    // reduced radius (from 1.0)
+					0.4     // increased threshold (from 0.1)
+				);
+				composer.addPass(bloomPass);
+
+				const controls = new OrbitControls(camera, renderer.domElement);
+				controls.addEventListener('change', render);
 				controls.minDistance = 10;
 				controls.maxDistance = 100;
+				controls.enableDamping = false;
+				controls.enableZoom = true;
+				controls.enablePan = false;
+				controls.enableRotate = true;
 
-				window.addEventListener( 'resize', resize );
+				window.addEventListener('resize', resize);
 
 			}
 
@@ -112,6 +135,7 @@
 				camera.updateProjectionMatrix();
 
 				renderer.setSize( window.innerWidth, window.innerHeight );
+				composer.setSize(window.innerWidth, window.innerHeight);
 
 				render();
 
@@ -119,7 +143,7 @@
 
 			function render() {
 
-				renderer.render( scene, camera );
+				composer.render();
 
 			}
 
