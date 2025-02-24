@@ -24,6 +24,13 @@
 
 				const loader = new GCodeLoader();
 				loader.load( 'assets/models/island.gcode', function ( object ) {
+					object.children.forEach(child => {
+						if (child.material) {
+							child.material.color.setHex(0x800080); // Set color to purple
+							child.material.opacity = 0.3;
+							child.material.transparent = true;
+						}
+					});
 
 					object.position.set( - 150, - 20, 150 );
 					scene.add( object );
@@ -32,9 +39,28 @@
 
 				} );
 
+				// Create a star field
+				const starsGeometry = new THREE.BufferGeometry();
+				const starsMaterial = new THREE.PointsMaterial({
+					color: 0xFFFFFF,
+					size: 0.1
+				});
+
+				const starsVertices = [];
+				for (let i = 0; i < 10000; i++) {
+					const x = THREE.MathUtils.randFloatSpread(2000);
+					const y = THREE.MathUtils.randFloatSpread(2000);
+					const z = THREE.MathUtils.randFloatSpread(2000);
+					starsVertices.push(x, y, z);
+				}
+
+				starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+				const starField = new THREE.Points(starsGeometry, starsMaterial);
+				scene.add(starField);
+
 				// Add text
 				const fontLoader = new FontLoader();
-				fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function(font) {
+				fontLoader.load('/fonts/helvetiker_bold.typeface.json', function(font) {
 					const textGeometry = new TextGeometry('SAMLAND', {
 						font: font,
 						size: 10,
