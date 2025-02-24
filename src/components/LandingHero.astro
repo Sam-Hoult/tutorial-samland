@@ -20,8 +20,8 @@
 
 			function init() {
 
-				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 1, 1000 );
-				camera.position.set( 0, 0, 70 );
+				camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+				camera.position.set(0, 0, 0); // Start from z=0
 
 				scene = new THREE.Scene();
 				scene.background = new THREE.Color(0x000000); // Add dark background
@@ -124,6 +124,33 @@
 				controls.enableZoom = true;
 				controls.enablePan = false;
 				controls.enableRotate = true;
+
+				// Add camera animation
+				let startTime = null;
+				const animationDuration = 3000; // 3 seconds
+
+				function animateCamera(timestamp) {
+					if (!startTime) startTime = timestamp;
+					const progress = timestamp - startTime;
+					const percentage = Math.min(progress / animationDuration, 1);
+					
+					// Ease out cubic function for smooth deceleration
+					const easeOut = 1 - Math.pow(1 - percentage, 3);
+					camera.position.z = easeOut * 70; // Animate to z=70
+					
+					composer.render();
+					
+					if (percentage < 1) {
+						requestAnimationFrame(animateCamera);
+					} else {
+						// Enable controls after animation
+						controls.enabled = true;
+					}
+				}
+
+				// Disable controls during initial animation
+				controls.enabled = false;
+				requestAnimationFrame(animateCamera);
 
 				window.addEventListener('resize', resize);
 
