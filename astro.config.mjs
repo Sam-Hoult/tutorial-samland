@@ -5,6 +5,6 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://main.d3d0lyiknk0flv.amplifyapp.com/',
+	site: 'https://tutorial.sam.land',
 	integrations: [mdx(), sitemap()],
 });
